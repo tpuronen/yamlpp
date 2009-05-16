@@ -1,0 +1,29 @@
+Teams:
+  - Lukko {kaupunki: Rauma, perustettu 1936}
+  - Ässät {kaupunki: Pori, perustettu 1936}
+  - TPS {kaupunki: Turku, perustettu 1936}
+
+
+list("Teams").find("Lukko")["kaupunki"]
+
+
+
+nimi: Timo
+asuinpaikka: Helsinki
+
+document.valueAs("nimi") == "Timo"
+
+
+
+-
+  nimi: Timo
+  asuinpaikka: Helsinki
+-
+  nimi: Kaisa
+  asuinpaikka: Helsinki
+
+
+for_each(Person p : persons) {
+  std::cout << p["nimi"] << std::endl;
+}
+
