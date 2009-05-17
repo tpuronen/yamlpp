@@ -30,8 +30,8 @@ struct YamlGrammar : public grammar<YamlGrammar> {
             string_value = lexeme_d[+alpha_p];
             num_value = real_p;
             property = property_id[self.identifier] >> ch_p(':') >> (num_value[self.num_value] | string_value[self.string_value]);
-            list_item = ch_p('-') >> lexeme_d[*alnum_p][self.list_item] >> eol_p;
-            yaml_line = list_item | property;
+            list_item = ch_p('-') >> lexeme_d[*alnum_p][self.list_item];
+            yaml_line = (list_item | property);
             yaml_document = *yaml_line;
         }
 
@@ -58,6 +58,8 @@ public:
     void add(const boost::any& item) {
         list.push_back(item);
     }
+
+    size_t count() const {return list.size();}
 
 private:
     List& operator=(const List&);
@@ -122,12 +124,16 @@ private:
         if (current.type() == typeid(List)) {
             return boost::any_cast<List&>(current);
         }
-        std::stringstream stamp;
-        stamp << "list-" << ::time(NULL);
-        current_id = stamp.str();
+        current_id = timeStamp();
         List list;
         values[current_id] = boost::any(list);
         return boost::any_cast<List&>(values[current_id]);
+    }
+
+    std::string timeStamp() const {
+        std::stringstream stamp;
+        stamp << "list-" << ::time(NULL);
+        return stamp.str();
     }
 
 private:
@@ -174,7 +180,7 @@ public:
         List& list = context().list();
 
         specify(list.valueAs<std::string>(0), should.equal("first"));
-//        specify(list.valueAs<std::string>(1), should.equal("second"));
-//        specify(list.valueAs<std::string>(2), should.equal("third"));
+        specify(list.valueAs<std::string>(1), should.equal("second"));
+        specify(list.valueAs<std::string>(2), should.equal("third"));
     }
 } listParserSpec;
