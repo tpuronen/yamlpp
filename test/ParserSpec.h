@@ -121,13 +121,13 @@ private:
 
     List& getOrCreateList() {
         boost::any& current = values[current_id];
-        if (current.type() == typeid(List)) {
-            return boost::any_cast<List&>(current);
+        if (current.type() != typeid(List)) {
+            current_id = timeStamp();
+            List list;
+            values[current_id] = boost::any(list);
+            return boost::any_cast<List&>(values[current_id]);
         }
-        current_id = timeStamp();
-        List list;
-        values[current_id] = boost::any(list);
-        return boost::any_cast<List&>(values[current_id]);
+        return boost::any_cast<List&>(current);
     }
 
     std::string timeStamp() const {
