@@ -47,19 +47,15 @@ struct YamlGrammar : public grammar<YamlGrammar> {
 class List {
 public:
     List() : list() {}
-    List(const List& that) : list(that.list) {}
-    ~List() {std::cerr << "in ~List\n";}
+    List(const List& that) : list() {list.assign(that.list.begin(), that.list.end());}
+    ~List() {}
 
     template<class T>
     T& valueAs(size_t index) {
-        std::cerr << "List::valueAs, " << list.size() << "\n";
-        boost::any& any = list[index];
-        std::cerr << "type: " << any.type().name() << "\n";
         return boost::any_cast<T&>(list[index]);
     }
 
     void add(const boost::any& item) {
-        std::cerr << "add\n";
         list.push_back(item);
     }
 
@@ -85,7 +81,12 @@ public:
 
     template<class T>
     T valueAs(const std::string& key) {
-        return boost::any_cast<T>(values[key]);
+        std::map<std::string, boost::any>::iterator it(values.find(key));
+        if (it == values.end()) {
+            // FIXME proper exception
+            throw std::string("Not found!");
+        }
+        return boost::any_cast<T>(it->second);
     }
 
     List& list() {
@@ -99,7 +100,6 @@ public:
 
 private:
     void id(const char* start, const char* end) {
-        std::cerr << "in id: " << std::string(start, end) << "\n";
         current_id = std::string(start, end);
     }
 
@@ -126,10 +126,8 @@ private:
         stamp << "list-" << ::time(NULL);
         current_id = stamp.str();
         List list;
-        std::cerr << "list is probably deleted here\n";
         values[current_id] = boost::any(list);
-        std::cerr << "list is probably deleted here\n";
-        return list;
+        return boost::any_cast<List&>(values[current_id]);
     }
 
 private:
@@ -172,7 +170,6 @@ public:
     void canParseList() {
         std::stringstream input;
         input << "- first" << std::endl << "- second" << std::endl << "- third";
-        std::cerr << "foobar\n";
         parse_info<> info = context().parse(input.str());
         List& list = context().list();
 
