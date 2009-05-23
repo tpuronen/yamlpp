@@ -172,8 +172,7 @@ public:
     }
 
     void anExceptionIsThrownWhenInexistantScalarIsAccessed() {
-        ScalarNotFoundException e("nonexistant");
-        specify(invoking(&Document::valueAs<std::string>, "nonexistant").should.raise.exception(e));
+        specify(invoking(&Document::valueAs<std::string>, "nonexistant").should.raise.exception<ScalarNotFoundException>("Scalar 'nonexistant' not found."));
     }
 
 } scalarParserSpec;
