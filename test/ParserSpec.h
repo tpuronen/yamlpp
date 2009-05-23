@@ -68,6 +68,12 @@ private:
     std::vector<boost::any> list;
 };
 
+class ScalarNotFoundException : public std::runtime_error {
+public:
+    explicit ScalarNotFoundException(const std::string& reason)
+    : std::runtime_error("Scalar '" + reason + "' not found.") {}
+};
+
 class Document {
 public:
     Document() : values(), current_id() {}
@@ -85,8 +91,7 @@ public:
     T valueAs(const std::string& key) {
         std::map<std::string, boost::any>::iterator it(values.find(key));
         if (it == values.end()) {
-            // FIXME proper exception
-            throw std::string("Not found!");
+            throw ScalarNotFoundException(key);
         }
         return boost::any_cast<T>(it->second);
     }
@@ -146,6 +151,7 @@ public:
     ScalarParserSpec() {
         REGISTER_BEHAVIOUR(ScalarParserSpec, canParseStringsFromMappings);
         REGISTER_BEHAVIOUR(ScalarParserSpec, canParseNumbersFromMappings);
+        REGISTER_BEHAVIOUR(ScalarParserSpec, anExceptionIsThrownWhenInexistantScalarIsAccessed);
     }
 
     Document* createContext() {
@@ -163,6 +169,11 @@ public:
 
     void canParseNumbersFromMappings() {
         specify(context().valueAs<int>("count"), should.equal(5));
+    }
+
+    void anExceptionIsThrownWhenInexistantScalarIsAccessed() {
+        ScalarNotFoundException e("nonexistant");
+        specify(invoking(&Document::valueAs<std::string>, "nonexistant").should.raise.exception(e));
     }
 
 } scalarParserSpec;
